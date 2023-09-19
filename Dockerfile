@@ -18,10 +18,10 @@ RUN apt-get update && apt-get install -y \
 # Install additional PHP extensions using docker-php-ext-install
 RUN docker-php-ext-install \
     mbstring \
-    intl
+ intl
 
 # Enable rewrite module
-RUN aenmod rewrite
+RUN a2enmod rewrite  # Fixed typo: changed "aenmod" to "a2enmod"
 
 # Install composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
@@ -30,7 +30,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 RUN composer install --no-dev --prefer-dist --no-scripts --no-progress --no-interaction
 
 # Change ownership of our application files
-RUN chown -R www-datawww-data /var/www/html
+RUN chown -R www-data:www-data /var/www/html  # Added ":" to specify group ownership
 
 # Copy Laravel file
 COPY .env.example .env
