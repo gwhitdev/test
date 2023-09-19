@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y \
     && composer install --no-scripts --no-autoloader --prefer-dist
 
 RUN a2enmod rewrite
-COPY ./docker/apache/000-default.conf /etc/apache2/sites-available/
+#COPY ./docker/apache/000-default.conf /etc/apache2/sites-available/
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 
 RUN php artisan key:generate \
