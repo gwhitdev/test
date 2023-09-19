@@ -8,48 +8,38 @@ COPY . /var/www/html
 # Set the working directory in the container
 WORKDIR /var/www/html
 
-# Install necessary PHP extensions
+# Install necessary PHP extensions and dependencies
 RUN apt-get update && apt-get install -y \
     libicu-dev \
-    libzip-dev
+    libzip-dev \
+    zip \
+    unzip
 
 # Install additional PHP extensions using docker-php-ext-install
 RUN docker-php-ext-install \
     mbstring \
-    intl \
-    zip
+    intl
 
-# Enable Apache rewrite module
-RUN a2enmod rewrite
-
-# Copy Laravel application
-# Commenting out the line to copy the application files since it has already been copied above
-# COPY . /var/www/html
-
-# Set working directory
-# Commenting out the second WORKDIR line since it has already been set above
-# WORKDIR /var/www/html
+# Enable rewrite module
+RUN aenmod rewrite
 
 # Install composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Install dependencies using composer
-RUN composer install
+RUN composer install --no-dev --prefer-dist --no-scripts --no-progress --no-interaction
 
 # Change ownership of our application files
-RUN chown -R www-data:www-data /var/www/html
+RUN chown -R www-datawww-data /var/www/html
 
-# Install mbstring extension again since it might not have been installed in previous steps
-RUN docker-php-ext-install mbstring
-
-# Copy Laravel environment file
+# Copy Laravel file
 COPY .env.example .env
 
-# Generate Laravel application key
+# Generate application key
 RUN php artisan key:generate
 
 # Expose port 80
 EXPOSE 80
 
-# Adjust Apache configurations by copying the custom config file
-COPY apache-config.conf /etc/apache2/sites-available/000-default.conf
+# Adjust Apache configurations by copying custom file
+COPY apache-config /etc/apache2/sites-available/000-default.conf
