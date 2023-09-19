@@ -1,30 +1,40 @@
-# Use the official PHP image as the base image
+#Dockerfile Example on running PHP Laravel app using Apache web server
+
 FROM php:8.1-apache
 
-# Copy the application files into the container
+# Install necessary libraries
+RUN apt-get update && apt-get install -y \
+    libonig-dev \
+    libzip-dev
+
+# Install PHP extensions
+RUN docker-php-ext-install \
+    mbstring \
+    zip
+
+# Copy Laravel application
 COPY . /var/www/html
 
-# Set the working directory in the container
+# Set working directory
 WORKDIR /var/www/html
 
-# Install necessary PHP extensions
-RUN apt-get update && apt-get install -y \
-    libicu-dev \
-    libzip-dev \
-    && docker-php-ext-install \
-    intl \
-    zip \
-    && a2enmod rewrite
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Install composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+# Install dependencies
+RUN composer install
 
-# Install Laravel dependencies
-RUN composer update
-RUN composer install --no-dev
+# Change ownership of our applications
+RUN chown -R www-data:www-data /var/www/html
+
+RUN docker-php-ext-install mbstring
+
+COPY .env.example .env
+RUN php artisan key:generate
 
 # Expose port 80
 EXPOSE 80
 
-# Define the entry point for the container
-CMD ["apache2-foreground"]
+# Adjusting Apache configurations
+RUN a2enmod rewrite
+COPY apache-config.conf /etc/apache2/sites-available/000-default.conf
