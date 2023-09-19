@@ -8,26 +8,23 @@ COPY . /var/www/html
 # Set the working directory in the container
 WORKDIR /var/www/html
 
-# Install necessary PHP extensions and dependencies
+# Install necessary PHP extensions
 RUN apt-get update && apt-get install -y \
     libicu-dev \
     libzip-dev \
+    && docker-php-ext-install \
+    intl \
     zip \
-    unzip
-
-# Install additional PHP extensions using docker-php-ext-install
-RUN docker-php-ext-install \
-    mbstring \
- intl
-
-# Enable rewrite module
-RUN a2enmod rewrite  # Fixed typo: changed "aenmod" to "a2enmod"
+    && a2enmod rewrite
 
 # Install composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Install dependencies using composer
-RUN composer install --no-dev --prefer-dist --no-scripts --no-progress --no-interaction
+# Install Laravel dependencies
+RUN composer install --no-dev
+
+# Expose port 80
+EXPOSE 80
 
 # Change ownership of our application files
 RUN chown -R www-data:www-data /var/www/html  # Added ":" to specify group ownership
